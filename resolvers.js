@@ -6,16 +6,23 @@ import { randomBytes } from "crypto";
 
 const resolvers = {
   Query: {
-    users: () => users,
+     // GET USER DATA
+    users: async () => {
+      const [rows] = await db.promise().query("SELECT * FROM registration");
+      return rows;
+    },
+ 
+    // GET ENROLLED STUDENT DATA
+    enrolledStudent: async () => {
+      const [rows] = await db.promise().query("SELECT * FROM enrolledstudent");
+      return rows;
+    },
     //for single user queries by id
-    user: (_, { id }) => users.find((u) => u.id == id),
-
-    quotes: () => quotes,
-
-    iquote: (_, { by }) => quotes.filter((q) => q.by == by),
-  },
-  User: {
-    quotes: (ur) => quotes.filter((qt) => qt.by == ur.id),
+    student: async (_, { id }) => {
+      const [rows] = await db.promise().query("SELECT * FROM enrolledstudent");
+      const student = rows.find((student) => student.id == id);
+      return student;
+    },
   },
 
   Mutation: {
@@ -77,8 +84,7 @@ const resolvers = {
         }
 
         const user = rows[0];
-        const doMatch = bcrypt.compareSync(userSignIn.password, user.password); 
-        
+        const doMatch = bcrypt.compareSync(userSignIn.password, user.password);
 
         if (!doMatch) {
           console.log("Invalid email and password");
@@ -91,6 +97,34 @@ const resolvers = {
         console.error("Error:", error);
         throw error;
       }
+    },
+    enrollStudentData: (_, { enroll }) => {
+      // CHECK FOR EXISTING USER
+      const q = "SELECT * FROM registration WHERE email = ?";
+
+      db.query(q, [enroll.email], (error, data) => {
+        const id = data[0].id;
+
+        const q =
+          "INSERT INTO enrolledstudent (id, email, name, phone_no, payment_fee ,payment_date,transaction_id) VALUES (?)";
+        const values = [
+          id,
+          enroll.email,
+          enroll.name,
+          enroll.phone_no,
+          enroll.payment_fee,
+          enroll.payment_date,
+          enroll.transaction_id,
+        ];
+        db.query(q, [values], (error, data) => {
+          if (error) {
+            throw new Error({ error });
+          }
+          if (data) {
+            console.log("Enrolled successfully");
+          }
+        });
+      });
     },
   },
 };
