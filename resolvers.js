@@ -1,8 +1,8 @@
-import { users, quotes } from "./fakeDb.js";
 import { db } from "./config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { randomBytes } from "crypto";
+import { v4 } from "uuid";
 
 const resolvers = {
   Query: {
@@ -152,6 +152,9 @@ const resolvers = {
           });
         }
       });
+    },
+    releaseAssignmentData: (_, { release }) => {
+      console.log(release);
     },
   },
 };

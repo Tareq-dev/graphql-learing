@@ -5,6 +5,10 @@ const typeDefs = gql`
     users: [User]
     student(id: ID!): Student
     enrolledStudent: [EnrolledStudent]
+
+    ################## ADMIM ######################
+
+    releaseAssignment: [ReleasingAssigment]
   }
 
   type User {
@@ -33,13 +37,30 @@ const typeDefs = gql`
     payment_date: String!
     transaction_id: String!
   }
+  ################## ADMIM ######################
+
+  type ReleasingAssigment {
+    title: String
+    requirement: String
+    note: String
+  }
 
   type Mutation {
     signUpUser(userNew: UserInput): User
     signInUser(userSignIn: UserSignInInput!): Token
     enrollStudentData(enroll: StudentInput!): EnrolledStudent
+
+    ################## ADMIM ######################
+    releaseAssignmentData(release: ReleaseInputAssigment): ReleasingAssigment
   }
 
+  ################## ADMIM ######################
+
+  input ReleaseInputAssigment {
+    title: String
+    requirement: String
+    note: String
+  }
   input StudentInput {
     name: String!
     email: String!
