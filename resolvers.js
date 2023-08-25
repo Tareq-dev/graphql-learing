@@ -107,18 +107,15 @@ const resolvers = {
       const enrolled_q = "SELECT * FROM enrolledstudent WHERE email = ?";
 
       db.query(enrolled_q, [enroll.email], (error, data) => {
-
-         // Check Already enrolled ??
+        // Check Already enrolled ??
 
         if (data.length) {
           throw new Error("Already Enrolled");
         } else {
-
-          // New? User can enrolled ??
+          // New? User can enrolled
 
           db.query(q, [enroll.email], (error, data) => {
-
-            //Get id to match 
+            //Get id to match
 
             const id = data[0].id;
 
@@ -138,7 +135,18 @@ const resolvers = {
                 throw new Error({ error });
               }
               if (data) {
-                console.log("Enrolled successfully");
+                const newRole = "student";
+
+                const updateQuery =
+                  "UPDATE registration SET role = ? WHERE email = ?";
+                db.query(
+                  updateQuery,
+                  [newRole, enroll.email],
+                  (updateResult) => {
+                    console.log("Role updated successfully");
+                    console.log("Enrolled successfully");
+                  }
+                );
               }
             });
           });
