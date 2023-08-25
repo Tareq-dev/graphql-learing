@@ -6,12 +6,12 @@ import { randomBytes } from "crypto";
 
 const resolvers = {
   Query: {
-     // GET USER DATA
+    // GET USER DATA
     users: async () => {
       const [rows] = await db.promise().query("SELECT * FROM registration");
       return rows;
     },
- 
+
     // GET ENROLLED STUDENT DATA
     enrolledStudent: async () => {
       const [rows] = await db.promise().query("SELECT * FROM enrolledstudent");
@@ -98,32 +98,51 @@ const resolvers = {
         throw error;
       }
     },
-    enrollStudentData: (_, { enroll }) => {
+    enrollStudentData: (_, { enroll }, { userId }) => {
       // CHECK FOR EXISTING USER
+      if (!userId) {
+        throw new Error("You must be logged in");
+      }
       const q = "SELECT * FROM registration WHERE email = ?";
+      const enrolled_q = "SELECT * FROM enrolledstudent WHERE email = ?";
 
-      db.query(q, [enroll.email], (error, data) => {
-        const id = data[0].id;
+      db.query(enrolled_q, [enroll.email], (error, data) => {
 
-        const q =
-          "INSERT INTO enrolledstudent (id, email, name, phone_no, payment_fee ,payment_date,transaction_id) VALUES (?)";
-        const values = [
-          id,
-          enroll.email,
-          enroll.name,
-          enroll.phone_no,
-          enroll.payment_fee,
-          enroll.payment_date,
-          enroll.transaction_id,
-        ];
-        db.query(q, [values], (error, data) => {
-          if (error) {
-            throw new Error({ error });
-          }
-          if (data) {
-            console.log("Enrolled successfully");
-          }
-        });
+         // Check Already enrolled ??
+
+        if (data.length) {
+          throw new Error("Already Enrolled");
+        } else {
+
+          // New? User can enrolled ??
+
+          db.query(q, [enroll.email], (error, data) => {
+
+            //Get id to match 
+
+            const id = data[0].id;
+
+            const q =
+              "INSERT INTO enrolledstudent (id, email, name, phone_no, payment_fee ,payment_date,transaction_id) VALUES (?)";
+            const values = [
+              id,
+              enroll?.email,
+              enroll?.name,
+              enroll.phone_no,
+              enroll.payment_fee,
+              enroll.payment_date,
+              enroll.transaction_id,
+            ];
+            db.query(q, [values], (error, data) => {
+              if (error) {
+                throw new Error({ error });
+              }
+              if (data) {
+                console.log("Enrolled successfully");
+              }
+            });
+          });
+        }
       });
     },
   },
